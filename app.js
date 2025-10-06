@@ -581,6 +581,77 @@ const describeMetric = (key, value) => {
   return `${label}: ${Math.round(value)}ms`;
 };
 
+const toDateFromParts = (parts) => {
+  if (!parts) return null;
+  const { year, month, day } = parts;
+  const yearNum = Number(year);
+  const monthNum = Number(month);
+  const dayNum = Number(day);
+  if (!Number.isFinite(yearNum) || !Number.isFinite(monthNum) || !Number.isFinite(dayNum)) {
+    return null;
+  }
+  const date = new Date(yearNum, monthNum - 1, dayNum);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const formatCollectionPeriod = (period) => {
+  if (!period) return null;
+  const start = toDateFromParts(period.firstDate);
+  const end = toDateFromParts(period.lastDate);
+  if (!start || !end) return null;
+
+  const longFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  if (start.getTime() === end.getTime()) {
+    return longFormatter.format(start);
+  }
+
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = sameYear && start.getMonth() === end.getMonth();
+  const startFormatter = sameMonth
+    ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
+    : longFormatter;
+
+  const startLabel = startFormatter.format(start);
+  const endLabel = longFormatter.format(end);
+  return `${startLabel} – ${endLabel}`;
+};
+
+const renderCruxSummary = ({ node, evaluations, hasFailures, period }) => {
+  node.textContent = '';
+  node.classList.add('cwv-status--ready');
+  node.dataset.state = hasFailures ? 'needs-attention' : 'pass';
+
+  const summaryLine = document.createElement('div');
+  summaryLine.className = 'cwv-status__summary';
+  summaryLine.textContent = hasFailures
+    ? 'Core Web Vitals need attention.'
+    : 'Core Web Vitals look great!';
+  node.appendChild(summaryLine);
+
+  const metricsContainer = document.createElement('div');
+  metricsContainer.className = 'cwv-status__metrics';
+  evaluations.forEach(({ key, p75, passes }) => {
+    const chip = document.createElement('span');
+    chip.className = `cwv-chip ${passes ? 'cwv-chip--pass' : 'cwv-chip--fail'}`;
+    chip.setAttribute('data-metric', key);
+    chip.textContent = `${passes ? '✅' : '⚠️'} ${describeMetric(key, p75)}`;
+    metricsContainer.appendChild(chip);
+  });
+  node.appendChild(metricsContainer);
+
+  if (period) {
+    const periodLine = document.createElement('div');
+    periodLine.className = 'cwv-status__period';
+    periodLine.textContent = `Data window: ${period}`;
+    node.appendChild(periodLine);
+  }
+};
+
 const initContactForm = () => {
   const form = document.getElementById('contactForm');
   const websiteInput = document.getElementById('website');
@@ -589,11 +660,15 @@ const initContactForm = () => {
 
   if (!form || !websiteInput || !websiteGroup || !statusNode) return;
 
+  statusNode.setAttribute('role', 'status');
+
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     form.reset();
     websiteGroup.classList.remove('needs-fix');
     statusNode.textContent = 'Thank you! Our team will reach out shortly.';
+    statusNode.classList.remove('cwv-status--ready');
+    statusNode.removeAttribute('data-state');
   });
 
   let debounceTimer;
@@ -603,6 +678,8 @@ const initContactForm = () => {
     if (!value) {
       statusNode.textContent = '';
       websiteGroup.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
@@ -625,10 +702,14 @@ const runCruxLookup = async (website, group, statusNode) => {
     if (!window.CRUX_API_KEY || window.CRUX_API_KEY === 'YOUR_CRUX_API_KEY') {
       statusNode.textContent = 'Add your Google CrUX API key to enable Core Web Vitals lookups.';
       group.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
     statusNode.textContent = 'Fetching Core Web Vitals…';
+    statusNode.classList.remove('cwv-status--ready');
+    statusNode.removeAttribute('data-state');
 
     const body = {
       url: normalized,
@@ -652,6 +733,8 @@ const runCruxLookup = async (website, group, statusNode) => {
     if (!data.record || !data.record.metrics) {
       statusNode.textContent = 'No Core Web Vitals available for this origin yet.';
       group.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
@@ -670,19 +753,21 @@ const runCruxLookup = async (website, group, statusNode) => {
     if (evaluations.length === 0) {
       statusNode.textContent = 'Core Web Vitals data is unavailable.';
       group.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
-    const summary = evaluations
-      .map(({ key, p75, passes }) => `${passes ? '✅' : '⚠️'} ${describeMetric(key, p75)}${passes ? '' : ' · needs fixing!'}`)
-      .join('  ');
+    const periodLabel = formatCollectionPeriod(data.record.collectionPeriod);
 
-    statusNode.textContent = summary;
+    renderCruxSummary({ node: statusNode, evaluations, hasFailures, period: periodLabel });
     group.classList.toggle('needs-fix', hasFailures);
   } catch (error) {
     console.error(error);
     statusNode.textContent = 'Unable to retrieve Core Web Vitals right now.';
     group.classList.add('needs-fix');
+    statusNode.classList.remove('cwv-status--ready');
+    statusNode.removeAttribute('data-state');
   }
 };
 
