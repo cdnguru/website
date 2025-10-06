@@ -25,12 +25,72 @@ const escapeHtml = (value) =>
   });
 
 const EDGE_VENDOR_TARGETS = [
-  { vendor: 'Cloudflare', url: 'https://www.cloudflare.com/' },
-  { vendor: 'Akamai', url: 'https://www.akamai.com/' },
-  { vendor: 'Fastly', url: 'https://www.fastly.com/' }
+  { id: 'cloudflare', vendor: 'Cloudflare', url: 'https://www.cloudflare.com/' },
+  { id: 'akamai', vendor: 'Akamai', url: 'https://www.akamai.com/' },
+  { id: 'fastly', vendor: 'Fastly', url: 'https://www.fastly.com/' },
+  { id: 'aws-amazon', vendor: 'AWS Amazon', url: 'https://aws.amazon.com/' }
 ];
 
-const proxiedVendorUrl = (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+const ensureEdgePulseWorker = (() => {
+  let readinessPromise;
+  return () => {
+    if (!('serviceWorker' in navigator)) {
+      return Promise.resolve(false);
+    }
+
+    if (!readinessPromise) {
+      readinessPromise = (async () => {
+        try {
+          await navigator.serviceWorker.register('edge-pulse-sw.js');
+          const registration = await navigator.serviceWorker.ready;
+
+          if (navigator.serviceWorker.controller) {
+            return true;
+          }
+
+          const controllerReady = await new Promise((resolve) => {
+            let resolved = false;
+            const timeoutId = window.setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                navigator.serviceWorker.removeEventListener('controllerchange', handleChange);
+                resolve(false);
+              }
+            }, 5000);
+
+            function handleChange() {
+              if (!resolved) {
+                resolved = true;
+                window.clearTimeout(timeoutId);
+                navigator.serviceWorker.removeEventListener('controllerchange', handleChange);
+                resolve(true);
+              }
+            }
+
+            navigator.serviceWorker.addEventListener('controllerchange', handleChange);
+
+            if (registration.active && navigator.serviceWorker.controller) {
+              handleChange();
+            }
+          });
+
+          if (controllerReady || navigator.serviceWorker.controller) {
+            return true;
+          }
+
+          readinessPromise = null;
+          return false;
+        } catch (error) {
+          console.error('Edge Pulse worker registration failed', error);
+          readinessPromise = null;
+          return false;
+        }
+      })();
+    }
+
+    return readinessPromise;
+  };
+})();
 
 let ispIdentityPromise;
 const fetchIspIdentity = async () => {
@@ -160,69 +220,84 @@ const renderHeroCountryShape = async ({ container, countryCode, countryName }) =
   }
 };
 
-const measureVendorTtfb = async ({ vendor, url }) => {
-  const requestUrl = proxiedVendorUrl(url);
-  const start = performance.now();
-  const response = await fetch(requestUrl, { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch HTML for ${vendor}`);
-  }
+const measureViaDirectFetch = async ({ vendor, url }) => {
+  const fetchWithMode = async (mode) => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12000);
 
-  let clone;
-  try {
-    clone = response.clone();
-  } catch (error) {
-    clone = null;
-  }
-
-  let ttfb;
-  if (response.body && response.body.getReader) {
-    const reader = response.body.getReader();
     try {
-      await reader.read();
-      ttfb = performance.now() - start;
+      const start = performance.now();
+      const response = await fetch(url, {
+        cache: 'no-store',
+        mode,
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        signal: controller.signal,
+        headers: {
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+
+      const latency = performance.now() - start;
+
+      if (mode === 'cors' && !response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return { latency };
     } finally {
-      reader.cancel().catch(() => {});
+      window.clearTimeout(timeoutId);
     }
-  } else {
-    ttfb = performance.now() - start;
+  };
+
+  try {
+    const { latency } = await fetchWithMode('cors');
+    return { vendor, url, latency };
+  } catch (error) {
+    console.warn(`Direct CORS fetch failed for ${vendor}, retrying without CORS`, error);
   }
 
-  let html = '';
-  if (clone) {
+  const { latency } = await fetchWithMode('no-cors');
+  return { vendor, url, latency };
+};
+
+const measureVendorLatency = async (target) => {
+  const workerReady = await ensureEdgePulseWorker();
+
+  if (workerReady && navigator.serviceWorker.controller) {
     try {
-      html = await clone.text();
+      const params = new URLSearchParams({ id: target.id, cacheBust: Date.now().toString() });
+      const response = await fetch(`/edge-pulse/measure?${params.toString()}`, {
+        cache: 'no-store',
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Edge Pulse worker responded with ${response.status}`);
+      }
+
+      const payload = await response.json();
+
+      if (!Number.isFinite(payload.latency)) {
+        throw new Error('Worker returned invalid latency');
+      }
+
+      return { vendor: target.vendor, url: target.url, latency: payload.latency };
     } catch (error) {
-      console.error(`Unable to read HTML for ${vendor}`, error);
+      console.warn('Edge Pulse worker measurement failed, falling back to direct fetch', error);
     }
   }
 
-  return { vendor, url, html, ttfb };
+  return measureViaDirectFetch(target);
 };
-
-const summarizeHtmlPreview = (html) => {
-  if (!html) {
-    return 'No preview available.';
-  }
-  const normalized = html.replace(/\s+/g, ' ').trim();
-  const slice = normalized.slice(0, 320);
-  const suffix = normalized.length > 320 ? '…' : '';
-  return escapeHtml(slice + suffix);
-};
-
-const EDGE_PULSE_SESSION_KEY = 'cdnguru.edgePulseAutoRun';
 
 const initEdgePulse = () => {
-  const trigger = document.getElementById('edgePulseTrigger');
-  const statusNode = document.getElementById('edgePulseStatus');
   const grid = document.getElementById('edgePulseGrid');
   const ispNode = document.getElementById('edgePulseIsp');
 
-  if (!trigger || !statusNode || !grid || !ispNode) return;
-
-  const setStatus = (message) => {
-    statusNode.textContent = message;
-  };
+  if (!grid || !ispNode) return;
 
   const renderIdentity = (identity) => {
     if (!identity) {
@@ -247,7 +322,16 @@ const initEdgePulse = () => {
 
   fetchIspIdentity().then(renderIdentity).catch(() => renderIdentity(null));
 
-  const formatTtfb = (value) => (Number.isFinite(value) ? `${Math.round(value)} ms TTFB` : 'TTFB unavailable');
+  const formatLatency = (value) => {
+    if (!Number.isFinite(value)) {
+      return { label: 'Latency unavailable', className: 'edge-card__latency edge-card__latency--unknown' };
+    }
+
+    const rounded = Math.round(value);
+    const isSlow = rounded > 500;
+    const className = `edge-card__latency ${isSlow ? 'edge-card__latency--slow' : 'edge-card__latency--fast'}`;
+    return { label: `${rounded} ms`, className };
+  };
 
   const renderResults = (results) => {
     if (!results.length) {
@@ -256,20 +340,12 @@ const initEdgePulse = () => {
     }
 
     grid.innerHTML = results
-      .map(({ vendor, url, html, ttfb, error }) => {
-        const preview = error ? escapeHtml(html || 'Measurement unavailable.') : summarizeHtmlPreview(html);
-        const label = error ? 'TTFB unavailable' : formatTtfb(ttfb);
-        const status = error ? '<span class="edge-card__ttfb">TTFB unavailable</span>' : `<span class="edge-card__ttfb">${label}</span>`;
+      .map(({ vendor, latency, error }) => {
+        const { label, className } = formatLatency(error ? Number.NaN : latency);
         return `
           <article class="edge-card">
-            <div class="edge-card__header">
-              <span class="edge-card__vendor">${vendor}</span>
-              ${status}
-            </div>
-            <div class="edge-card__meta">
-              <span>Source: ${escapeHtml(url)}</span>
-            </div>
-            <pre>${preview}</pre>
+            <span class="edge-card__vendor">${escapeHtml(vendor)}</span>
+            <span class="${className}">${escapeHtml(label)}</span>
           </article>
         `;
       })
@@ -277,109 +353,46 @@ const initEdgePulse = () => {
   };
 
   const runEdgePulse = async () => {
-    trigger.disabled = true;
-    trigger.textContent = 'Running Edge Pulse…';
-    setStatus('Measuring live responses via AllOrigins proxy…');
-    grid.innerHTML = '';
+    grid.innerHTML = '<p class="edge-pulse__loading">Measuring edge performance…</p>';
 
-    const results = [];
-    for (const target of EDGE_VENDOR_TARGETS) {
-      try {
-        const measurement = await measureVendorTtfb(target);
-        results.push(measurement);
-      } catch (error) {
-        console.error('Edge Pulse measurement failed', target.vendor, error);
-        results.push({ ...target, html: 'Measurement unavailable.', ttfb: Number.NaN, error: true });
-      }
-    }
-
-    renderResults(results);
-    const hasErrors = results.some((item) => item.error);
-    setStatus(
-      hasErrors
-        ? 'Some vendors were unreachable. Partial results shown via AllOrigins proxy.'
-        : 'Live CDN HTML fetched via AllOrigins proxy. TTFB is approximate.'
+    const results = await Promise.all(
+      EDGE_VENDOR_TARGETS.map(async (target) => {
+        try {
+          const measurement = await measureVendorLatency(target);
+          return { ...measurement, error: false };
+        } catch (error) {
+          console.error('Edge Pulse measurement failed', target.vendor, error);
+          return { ...target, latency: Number.NaN, error: true };
+        }
+      })
     );
 
-    trigger.disabled = false;
-    trigger.textContent = 'Run Edge Pulse';
+    renderResults(results);
   };
 
-  trigger.addEventListener('click', () => {
-    runEdgePulse().catch((error) => {
-      console.error('Edge Pulse failed', error);
-      setStatus('Edge Pulse is unavailable right now. Please try again shortly.');
-      trigger.disabled = false;
-      trigger.textContent = 'Run Edge Pulse';
-    });
+  runEdgePulse().catch((error) => {
+    console.error('Edge Pulse failed', error);
+    grid.innerHTML = '<p class="edge-pulse__loading">Edge Pulse is unavailable right now.</p>';
   });
-
-  setStatus('Tap “Run Edge Pulse” to probe live CDN HTML responses.');
-
-  const shouldAutoRun = (() => {
-    try {
-      return !sessionStorage.getItem(EDGE_PULSE_SESSION_KEY);
-    } catch (error) {
-      console.warn('Session storage unavailable, skipping Edge Pulse auto-run.', error);
-      return false;
-    }
-  })();
-
-  if (shouldAutoRun) {
-    try {
-      sessionStorage.setItem(EDGE_PULSE_SESSION_KEY, '1');
-    } catch (error) {
-      console.warn('Unable to persist Edge Pulse auto-run state.', error);
-    }
-
-    runEdgePulse().catch((error) => {
-      console.error('Automatic Edge Pulse run failed', error);
-    });
-  }
 };
 
 const initHeroGlobe = async () => {
   const globe = document.getElementById('heroGlobe');
-  const locationNode = document.getElementById('heroLocation');
-
-  if (!globe || !locationNode) return;
+  if (!globe) return;
 
   const identity = await fetchIspIdentity();
-
-  if (!identity) {
-    locationNode.textContent = 'Accelerating experiences across the globe.';
-    return;
-  }
-
-  const { city, region, country, countryCode } = identity;
+  const countryCode = identity?.countryCode;
+  const countryName = identity?.country;
 
   const renderedShape = await renderHeroCountryShape({
     container: globe,
     countryCode,
-    countryName: country
+    countryName
   });
 
   if (!renderedShape) {
     globe.innerHTML = '';
     globe.classList.remove('hero__globe--active');
-  }
-
-  const localityParts = [city, region].filter(Boolean);
-  const countryLabel = country || countryCode || null;
-  let label = '';
-
-  if (localityParts.length && countryLabel) {
-    label = `${localityParts.join(', ')}, ${countryLabel}`;
-  } else if (localityParts.length) {
-    label = localityParts.join(', ');
-  } else if (countryLabel) {
-    label = countryLabel;
-  }
-
-  if (label) {
-    locationNode.innerHTML = `<span class="hero__location-dot"></span>Viewing from ${escapeHtml(label)}`;
-  } else {
-    locationNode.textContent = 'Accelerating experiences across the globe.';
   }
 };
 
@@ -389,21 +402,39 @@ const initStatsMarquee = async () => {
     const marquee = document.getElementById('statsMarquee');
     if (!marquee) return;
 
-    const renderChips = (list) => {
-      return list
-        .map(
-          ({ vendor, metric, value }) => `
-            <span class="stats-chip">
-              <span>${vendor}</span>
-              <span>${metric}:</span>
-              <span>${value}</span>
-            </span>
-          `
-        )
-        .join('');
-    };
+    const groupStatsByVendor = (list) =>
+      list.reduce((groups, item) => {
+        const lastGroup = groups[groups.length - 1];
+        if (!lastGroup || lastGroup.vendor !== item.vendor) {
+          groups.push({ vendor: item.vendor, metrics: [item] });
+        } else {
+          lastGroup.metrics.push(item);
+        }
+        return groups;
+      }, []);
 
-    marquee.innerHTML = renderChips(stats.concat(stats));
+    const renderGroups = (groups) =>
+      groups
+        .map((group, index) => {
+          const metrics = group.metrics
+            .map(({ metric, value }) => {
+              const valuePart = value ? ` ${escapeHtml(value)}` : '';
+              return `${escapeHtml(group.vendor)} ${escapeHtml(metric)}${valuePart}`;
+            })
+            .join(' ');
+
+          const divider =
+            index === groups.length - 1
+              ? ''
+              : ' <span class="stats-group__divider" aria-hidden="true">·</span> ';
+
+          return `<span class="stats-group">${metrics}</span>${divider}`;
+        })
+        .join(' ');
+
+    const grouped = groupStatsByVendor(stats);
+    const loopedGroups = grouped.concat(grouped);
+    marquee.innerHTML = renderGroups(loopedGroups);
   } catch (error) {
     console.error('Unable to load vendor stats', error);
   }
@@ -497,16 +528,13 @@ const initRetainCalculator = () => {
     const guruCost = hours * GURU_RATE;
     const savings = baselineCost - guruCost;
     const isRecurring = modeSelect.value === 'recurring';
-    const mode = isRecurring ? 'per month' : 'per engagement';
-    const annualSavings = isRecurring ? savings * 12 : null;
 
-    resultNode.innerHTML = `
-      <strong>Your investment profile</strong><br />
-      Traditional vendor services: <span class="number">$${baselineCost.toLocaleString()}</span> ${mode}<br />
-      CDN Guru retainers: <span class="number">$${guruCost.toLocaleString()}</span> ${mode}<br />
-      <span class="number">Save $${savings.toLocaleString()}</span> with CDN Guru (${hours} expert hours @ $100/hour).
-      ${annualSavings ? `<br /><em>Annualized savings:</em> <span class="number">$${annualSavings.toLocaleString()}</span>` : ''}
-    `;
+    if (isRecurring) {
+      const annualSavings = savings * 12;
+      resultNode.innerHTML = `<span class="number">Estimated annual savings: $${annualSavings.toLocaleString()}</span>`;
+    } else {
+      resultNode.innerHTML = `<span class="number">Estimated savings per engagement: $${savings.toLocaleString()}</span>`;
+    }
   });
 };
 
