@@ -1,0 +1,44 @@
+[
+  {
+    "vendor": "Akamai",
+    "title": "Introducing EdgeWorkers Enhancements for Modern Applications",
+    "excerpt": "Akamai expands its serverless edge compute platform with new debugging tools and enhanced CI/CD integrations.",
+    "url": "https://www.akamai.com/blog",
+    "date": "2024-08-15"
+  },
+  {
+    "vendor": "Akamai",
+    "title": "Defending APIs Against Sophisticated Botnets",
+    "excerpt": "Insights from our security research team on how enterprises can stay ahead of evolving bot attacks.",
+    "url": "https://www.akamai.com/blog/security",
+    "date": "2024-07-09"
+  },
+  {
+    "vendor": "Cloudflare",
+    "title": "Cloudflare Workers Adds Native Vector Database Support",
+    "excerpt": "Launch AI experiences with ultra-low latency thanks to integrated vector storage on the edge.",
+    "url": "https://blog.cloudflare.com",
+    "date": "2024-09-02"
+  },
+  {
+    "vendor": "Cloudflare",
+    "title": "New DDoS Insights: Q2 Threat Landscape",
+    "excerpt": "A deep dive into the largest network-layer attacks mitigated across the Cloudflare network.",
+    "url": "https://blog.cloudflare.com/ddos/",
+    "date": "2024-07-22"
+  },
+  {
+    "vendor": "Fastly",
+    "title": "Fastly Next-Gen WAF Adds Auto-Remediation",
+    "excerpt": "Automate incident response and protect APIs faster with policy-as-code and adaptive mitigation.",
+    "url": "https://www.fastly.com/blog",
+    "date": "2024-08-28"
+  },
+  {
+    "vendor": "Fastly",
+    "title": "Streaming at Scale: Lessons from Global Sports Events",
+    "excerpt": "How Fastly customers delivered pristine video experiences to millions of concurrent viewers.",
+    "url": "https://www.fastly.com/blog/streaming",
+    "date": "2024-06-30"
+  }
+]

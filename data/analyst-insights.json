@@ -1,0 +1,26 @@
+[
+  {
+    "source": "Gartner",
+    "headline": "Magic Quadrant leaders continue to prioritize intelligent edge security and programmable performance pipelines.",
+    "detail": "Leverage unified edge compute, security automation, and observability to meet modern application demands while reducing time-to-market.",
+    "year": 2024
+  },
+  {
+    "source": "Forrester",
+    "headline": "Leaders blend robust developer workflows with deep observability to unlock rapid experimentation.",
+    "detail": "High-performing teams invest in CDNs that expose granular telemetry, API-first control planes, and zero-trust security natively.",
+    "year": 2023
+  },
+  {
+    "source": "IDC",
+    "headline": "Enterprise buyers seek multi-vendor edge strategies to balance resilience, performance, and cost control.",
+    "detail": "Organizations with hybrid CDN strategies achieved 34% faster global latency improvements and 27% lower operational spend in 12 months.",
+    "year": 2024
+  },
+  {
+    "source": "Frost & Sullivan",
+    "headline": "Managed performance services accelerate cloud-native adoption and drive measurable business outcomes.",
+    "detail": "Customers partnering with elite CDN specialists realized a 4x improvement in release velocity while maintaining stringent security baselines.",
+    "year": 2024
+  }
+]

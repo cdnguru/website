@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CDN Guru | CDN, Web Performance & Cloud Security Experts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="hero">
+      <div class="hero__globe" id="heroGlobe" aria-hidden="true"></div>
+      <div class="hero__overlay"></div>
+      <div class="hero__content">
+        <h1>CDN Guru</h1>
+        <p class="hero__tagline">Unifying expertise across Akamai, Cloudflare, Fastly & AWS to accelerate and secure the world's biggest experiences.</p>
+        <a href="#contact" class="cta">Book a Free Assessment</a>
+        <div class="hero__location" id="heroLocation" aria-live="polite">Pinpointing your edge vantage point…</div>
+      </div>
+    </header>
+
+    <section class="stats-marquee" aria-label="CDN vendor statistics">
+      <div class="stats-marquee__inner" id="statsMarquee"></div>
+    </section>
+
+    <main>
+      <section class="intro">
+        <div class="intro__text">
+          <h2>End-to-End CDN Mastery</h2>
+          <p>
+            We are the only global team with battle-tested expertise across every leading CDN, web performance, and cloud security platform.
+            From design to day-two optimization, CDNguru ensures you realize every dollar of value across Akamai, Cloudflare, Fastly, and AWS CloudFront.
+          </p>
+        </div>
+        <div class="intro__badge">
+          <div class="badge__glow"></div>
+          <div class="badge__content">
+            <p>Trusted by</p>
+            <h3>Fortune 500 innovators</h3>
+            <p class="badge__subtitle">Airlines · E-commerce · Travel · Financial Services</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="edge-pulse" id="edgePulse" aria-labelledby="edgePulseTitle">
+        <div class="edge-pulse__heading">
+          <h2 id="edgePulseTitle">Edge Pulse Live Lab</h2>
+          <p>Pull real HTML from leading CDN vendors, capture live time-to-first-byte, and see how your network shapes the edge.</p>
+        </div>
+        <div class="edge-pulse__actions">
+          <button type="button" class="cta cta--secondary" id="edgePulseTrigger">Run Edge Pulse</button>
+          <p class="edge-pulse__status" id="edgePulseStatus" aria-live="polite"></p>
+        </div>
+        <div class="edge-pulse__identity" id="edgePulseIsp" aria-live="polite"></div>
+        <div class="edge-pulse__grid" id="edgePulseGrid" aria-live="polite"></div>
+      </section>
+
+      <section class="services" id="services">
+        <h2>Services Engineered to Deliver Value</h2>
+        <div class="services__grid">
+          <article class="service-card">
+            <h3>Optimize</h3>
+            <p>Audit, benchmark, and fine-tune your CDN footprint to maximize speed while eliminating wasted spend. We activate every feature you pay for.</p>
+          </article>
+          <article class="service-card">
+            <h3>Procure</h3>
+            <p>Vendor-agnostic evaluations, proof-of-concepts, and commercial negotiations that map capabilities to your exact needs.</p>
+          </article>
+          <article class="service-card">
+            <h3>Retain</h3>
+            <p>Dedicated CDN experts on tap for a fraction of vendor rates. Resolve incidents, ship new experiences, and keep teams current.</p>
+          </article>
+          <article class="service-card">
+            <h3>Scale</h3>
+            <p>Managed load, stress, and performance testing so you can launch globally with confidence.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="analyst" aria-label="Industry analyst perspectives">
+        <h2>What the Analysts Say</h2>
+        <div class="analyst__carousel" id="analystCarousel"></div>
+        <div class="carousel__controls">
+          <button id="analystPrev" aria-label="Previous analyst insight">&#8592;</button>
+          <button id="analystNext" aria-label="Next analyst insight">&#8594;</button>
+        </div>
+      </section>
+
+      <section class="blogs" id="blogs">
+        <h2>Latest Insights from Leading CDNs</h2>
+        <div class="blogs__grid" id="blogGrid" aria-live="polite"></div>
+      </section>
+
+      <section class="retain-calculator" id="retain">
+        <h2>Retain: Expertise on Demand</h2>
+        <p class="retain__intro">Calculate your savings when you retain CDN Guru as your strategic partner.</p>
+        <form class="retain__form" id="retainForm">
+          <div class="input-group">
+            <label for="retainMode">Engagement Type</label>
+            <select id="retainMode" required>
+              <option value="recurring">Monthly Recurring Hours</option>
+              <option value="bucket">Bucket of Hours</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="retainHours">Hours</label>
+            <input type="number" id="retainHours" min="1" placeholder="e.g. 20" required />
+          </div>
+          <button type="submit" class="cta">Calculate</button>
+        </form>
+        <div class="retain__result" id="retainResult" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="contact" id="contact">
+      <div class="contact__content">
+        <h2>Let's Build a Faster, Safer Edge</h2>
+        <p>Every engagement begins with a no-cost assessment. Tell us about your current footprint and we will map the fastest path to value.</p>
+        <form class="contact__form" id="contactForm" novalidate>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" name="name" placeholder="Jane Doe" required />
+            </div>
+            <div class="input-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="you@company.com" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="company">Company</label>
+              <input type="text" id="company" name="company" placeholder="Organization" />
+            </div>
+            <div class="input-group input-group--website" id="websiteGroup">
+              <label for="website">Website</label>
+              <input type="url" id="website" name="website" placeholder="https://www.example.com" />
+              <div class="input-hint" id="cwvStatus"></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="message">How can we help?</label>
+            <textarea id="message" name="message" rows="4" placeholder="Tell us about your CDN, performance and security goals" required></textarea>
+          </div>
+          <button type="submit" class="cta">Submit & Request Assessment</button>
+        </form>
+      </div>
+      <p class="footer-note">© <span id="year"></span> CDNguru. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    window.CRUX_API_KEY = "YOUR_CRUX_API_KEY";
+  </script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
