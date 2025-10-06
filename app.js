@@ -1,3 +1,11 @@
+import { Analytics } from "@vercel/analytics/next";
+
+try {
+  Analytics();
+} catch (error) {
+  console.warn("Vercel analytics injection failed", error);
+}
+
 const fetchJSON = async (path) => {
   const response = await fetch(path);
   if (!response.ok) {
