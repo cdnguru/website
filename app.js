@@ -419,10 +419,9 @@ const initStatsMarquee = async () => {
           const metrics = group.metrics
             .map(({ metric, value }) => {
               const valuePart = value ? ` ${escapeHtml(value)}` : '';
-              const label = `${escapeHtml(group.vendor)} ${escapeHtml(metric)}${valuePart}`;
-              return `<span class="stats-chip">${label}</span>`;
+              return `${escapeHtml(group.vendor)} ${escapeHtml(metric)}${valuePart}`;
             })
-            .join('');
+            .join(' ');
 
           const divider =
             index === groups.length - 1

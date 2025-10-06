@@ -280,24 +280,9 @@ body {
 }
 
 .stats-group {
-  display: inline-flex;
-  align-items: center;
+  display: inline;
   white-space: nowrap;
-  gap: 0.35rem;
-}
-
-.stats-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
   font-weight: 500;
-  font-size: 0.95rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.88);
-  letter-spacing: 0.01em;
 }
 
 .stats-group__divider {
