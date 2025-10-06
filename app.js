@@ -447,32 +447,58 @@ const initAnalystCarousel = async () => {
     const carousel = document.getElementById('analystCarousel');
     const prevBtn = document.getElementById('analystPrev');
     const nextBtn = document.getElementById('analystNext');
-    if (!carousel || !prevBtn || !nextBtn) return;
+
+    if (!carousel || !prevBtn || !nextBtn || !Array.isArray(insights) || insights.length === 0) {
+      return;
+    }
 
     let index = 0;
+    const visibleCount = Math.min(2, insights.length);
+    const step = insights.length > visibleCount ? visibleCount : 1;
+    let autoAdvance;
+
+    const buildCard = (item) => `
+        <article class="analyst__item">
+          <h3>${escapeHtml(item.source)} · ${escapeHtml(item.year)}</h3>
+          <p class="analyst__headline">${escapeHtml(item.headline)}</p>
+          <p>${escapeHtml(item.detail)}</p>
+        </article>
+      `;
 
     const render = () => {
-      const item = insights[index];
-      carousel.innerHTML = `
-        <div class="analyst__item">
-          <h3>${item.source} · ${item.year}</h3>
-          <p class="analyst__headline">${item.headline}</p>
-          <p>${item.detail}</p>
-        </div>
-      `;
+      const cards = [];
+      for (let offset = 0; offset < visibleCount; offset += 1) {
+        const insight = insights[(index + offset) % insights.length];
+        cards.push(buildCard(insight));
+      }
+      carousel.innerHTML = `<div class="analyst__track">${cards.join('')}</div>`;
     };
 
     const goTo = (direction) => {
-      index = (index + direction + insights.length) % insights.length;
+      index = (index + direction * step + insights.length) % insights.length;
       render();
+      scheduleAutoAdvance();
+    };
+
+    const scheduleAutoAdvance = () => {
+      if (autoAdvance) {
+        window.clearInterval(autoAdvance);
+      }
+      if (insights.length <= visibleCount) {
+        autoAdvance = null;
+        return;
+      }
+      autoAdvance = window.setInterval(() => {
+        index = (index + step) % insights.length;
+        render();
+      }, 8000);
     };
 
     prevBtn.addEventListener('click', () => goTo(-1));
     nextBtn.addEventListener('click', () => goTo(1));
 
     render();
-
-    setInterval(() => goTo(1), 8000);
+    scheduleAutoAdvance();
   } catch (error) {
     console.error('Unable to load analyst insights', error);
   }
