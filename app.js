@@ -1,3 +1,11 @@
+import { Analytics } from "@vercel/analytics/next";
+
+try {
+  Analytics();
+} catch (error) {
+  console.warn("Vercel analytics injection failed", error);
+}
+
 const fetchJSON = async (path) => {
   const response = await fetch(path);
   if (!response.ok) {
@@ -446,32 +454,58 @@ const initAnalystCarousel = async () => {
     const carousel = document.getElementById('analystCarousel');
     const prevBtn = document.getElementById('analystPrev');
     const nextBtn = document.getElementById('analystNext');
-    if (!carousel || !prevBtn || !nextBtn) return;
+
+    if (!carousel || !prevBtn || !nextBtn || !Array.isArray(insights) || insights.length === 0) {
+      return;
+    }
 
     let index = 0;
+    const visibleCount = Math.min(2, insights.length);
+    const step = insights.length > visibleCount ? visibleCount : 1;
+    let autoAdvance;
+
+    const buildCard = (item) => `
+        <article class="analyst__item">
+          <h3>${escapeHtml(item.source)} · ${escapeHtml(item.year)}</h3>
+          <p class="analyst__headline">${escapeHtml(item.headline)}</p>
+          <p>${escapeHtml(item.detail)}</p>
+        </article>
+      `;
 
     const render = () => {
-      const item = insights[index];
-      carousel.innerHTML = `
-        <div class="analyst__item">
-          <h3>${item.source} · ${item.year}</h3>
-          <p class="analyst__headline">${item.headline}</p>
-          <p>${item.detail}</p>
-        </div>
-      `;
+      const cards = [];
+      for (let offset = 0; offset < visibleCount; offset += 1) {
+        const insight = insights[(index + offset) % insights.length];
+        cards.push(buildCard(insight));
+      }
+      carousel.innerHTML = `<div class="analyst__track">${cards.join('')}</div>`;
     };
 
     const goTo = (direction) => {
-      index = (index + direction + insights.length) % insights.length;
+      index = (index + direction * step + insights.length) % insights.length;
       render();
+      scheduleAutoAdvance();
+    };
+
+    const scheduleAutoAdvance = () => {
+      if (autoAdvance) {
+        window.clearInterval(autoAdvance);
+      }
+      if (insights.length <= visibleCount) {
+        autoAdvance = null;
+        return;
+      }
+      autoAdvance = window.setInterval(() => {
+        index = (index + step) % insights.length;
+        render();
+      }, 8000);
     };
 
     prevBtn.addEventListener('click', () => goTo(-1));
     nextBtn.addEventListener('click', () => goTo(1));
 
     render();
-
-    setInterval(() => goTo(1), 8000);
+    scheduleAutoAdvance();
   } catch (error) {
     console.error('Unable to load analyst insights', error);
   }
@@ -580,7 +614,76 @@ const describeMetric = (key, value) => {
   return `${label}: ${Math.round(value)}ms`;
 };
 
-const CONTACT_ENDPOINT = 'https://formsubmit.co/ajax/joakim@cdnguru.com';
+const toDateFromParts = (parts) => {
+  if (!parts) return null;
+  const { year, month, day } = parts;
+  const yearNum = Number(year);
+  const monthNum = Number(month);
+  const dayNum = Number(day);
+  if (!Number.isFinite(yearNum) || !Number.isFinite(monthNum) || !Number.isFinite(dayNum)) {
+    return null;
+  }
+  const date = new Date(yearNum, monthNum - 1, dayNum);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const formatCollectionPeriod = (period) => {
+  if (!period) return null;
+  const start = toDateFromParts(period.firstDate);
+  const end = toDateFromParts(period.lastDate);
+  if (!start || !end) return null;
+
+  const longFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  if (start.getTime() === end.getTime()) {
+    return longFormatter.format(start);
+  }
+
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = sameYear && start.getMonth() === end.getMonth();
+  const startFormatter = sameMonth
+    ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
+    : longFormatter;
+
+  const startLabel = startFormatter.format(start);
+  const endLabel = longFormatter.format(end);
+  return `${startLabel} – ${endLabel}`;
+};
+
+const renderCruxSummary = ({ node, evaluations, hasFailures, period }) => {
+  node.textContent = '';
+  node.classList.add('cwv-status--ready');
+  node.dataset.state = hasFailures ? 'needs-attention' : 'pass';
+
+  const summaryLine = document.createElement('div');
+  summaryLine.className = 'cwv-status__summary';
+  summaryLine.textContent = hasFailures
+    ? 'Core Web Vitals need attention.'
+    : 'Core Web Vitals look great!';
+  node.appendChild(summaryLine);
+
+  const metricsContainer = document.createElement('div');
+  metricsContainer.className = 'cwv-status__metrics';
+  evaluations.forEach(({ key, p75, passes }) => {
+    const chip = document.createElement('span');
+    chip.className = `cwv-chip ${passes ? 'cwv-chip--pass' : 'cwv-chip--fail'}`;
+    chip.setAttribute('data-metric', key);
+    chip.textContent = `${passes ? '✅' : '⚠️'} ${describeMetric(key, p75)}`;
+    metricsContainer.appendChild(chip);
+  });
+  node.appendChild(metricsContainer);
+
+  if (period) {
+    const periodLine = document.createElement('div');
+    periodLine.className = 'cwv-status__period';
+    periodLine.textContent = `Data window: ${period}`;
+    node.appendChild(periodLine);
+  }
+};
 
 const initContactForm = () => {
   const form = document.getElementById('contactForm');
@@ -590,42 +693,14 @@ const initContactForm = () => {
 
   if (!form || !websiteInput || !websiteGroup || !statusNode) return;
 
-  form.addEventListener('submit', async (event) => {
+  statusNode.setAttribute('role', 'status');
+
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
     websiteGroup.classList.remove('needs-fix');
-
-    const formData = new FormData(form);
-    const payload = {
-      name: formData.get('name')?.trim() || '',
-      email: formData.get('email')?.trim() || '',
-      company: formData.get('company')?.trim() || '',
-      website: formData.get('website')?.trim() || '',
-      message: formData.get('message')?.trim() || ''
-    };
-
-    statusNode.textContent = 'Sending your request…';
-
-    try {
-      const response = await fetch(CONTACT_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Contact form submission failed with ${response.status}`);
-      }
-
-      await response.json().catch(() => null);
-      form.reset();
-      statusNode.textContent = 'Thank you! Our team will reach out shortly.';
-    } catch (error) {
-      console.error('Unable to submit contact form', error);
-      statusNode.textContent = 'We could not send your request. Please email joakim@cdnguru.com directly.';
-    }
+    statusNode.textContent = 'Thank you! Our team will reach out shortly.';
+    statusNode.classList.remove('cwv-status--ready');
+    statusNode.removeAttribute('data-state');
   });
 
   let debounceTimer;
@@ -635,6 +710,8 @@ const initContactForm = () => {
     if (!value) {
       statusNode.textContent = '';
       websiteGroup.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
@@ -657,10 +734,14 @@ const runCruxLookup = async (website, group, statusNode) => {
     if (!window.CRUX_API_KEY || window.CRUX_API_KEY === 'YOUR_CRUX_API_KEY') {
       statusNode.textContent = 'Add your Google CrUX API key to enable Core Web Vitals lookups.';
       group.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
     statusNode.textContent = 'Fetching Core Web Vitals…';
+    statusNode.classList.remove('cwv-status--ready');
+    statusNode.removeAttribute('data-state');
 
     const body = {
       url: normalized,
@@ -684,6 +765,8 @@ const runCruxLookup = async (website, group, statusNode) => {
     if (!data.record || !data.record.metrics) {
       statusNode.textContent = 'No Core Web Vitals available for this origin yet.';
       group.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
@@ -702,19 +785,21 @@ const runCruxLookup = async (website, group, statusNode) => {
     if (evaluations.length === 0) {
       statusNode.textContent = 'Core Web Vitals data is unavailable.';
       group.classList.remove('needs-fix');
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
       return;
     }
 
-    const summary = evaluations
-      .map(({ key, p75, passes }) => `${passes ? '✅' : '⚠️'} ${describeMetric(key, p75)}${passes ? '' : ' · needs fixing!'}`)
-      .join('  ');
+    const periodLabel = formatCollectionPeriod(data.record.collectionPeriod);
 
-    statusNode.textContent = summary;
+    renderCruxSummary({ node: statusNode, evaluations, hasFailures, period: periodLabel });
     group.classList.toggle('needs-fix', hasFailures);
   } catch (error) {
     console.error(error);
     statusNode.textContent = 'Unable to retrieve Core Web Vitals right now.';
     group.classList.add('needs-fix');
+    statusNode.classList.remove('cwv-status--ready');
+    statusNode.removeAttribute('data-state');
   }
 };
 

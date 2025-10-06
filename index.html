@@ -11,7 +11,16 @@
 </head>
 <body>
   <div class="app" id="app">
-    <header class="hero">
+    <nav class="site-nav" aria-label="Primary">
+      <a class="site-nav__brand" href="#top">CDN Guru</a>
+      <ul class="site-nav__links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#blueprints">Blueprints</a></li>
+        <li><a href="#insights">Insights</a></li>
+        <li><a href="#contact">Get in touch</a></li>
+      </ul>
+    </nav>
+    <header class="hero" id="top">
       <div class="hero__globe" id="heroGlobe" aria-hidden="true"></div>
       <div class="hero__overlay"></div>
       <div class="hero__content">
@@ -71,6 +80,58 @@
         </div>
       </section>
 
+      <section class="blueprints" id="blueprints" aria-label="Blueprint collections">
+        <div class="blueprints__header">
+          <h2>Blueprints</h2>
+          <p>Explore ready-to-run reference architectures that orchestrate multi-CDN delivery, unified observability, and streaming telemetry.</p>
+        </div>
+        <div class="blueprints__collections" role="list">
+          <article class="blueprint-card" role="listitem">
+            <div class="blueprint-card__meta">Collection · Multi-CDN Operations</div>
+            <h3>Global Experience Control Plane</h3>
+            <p>IORiver directs traffic across your primary CDNs, synchronizes configuration, and keeps change velocity high without sacrificing resiliency.</p>
+            <div class="blueprint-diagram" role="img" aria-label="IORiver orchestrates multi-CDN traffic, Hydrolix centralizes logs, and Momento streams player telemetry into Athena.">
+              <div class="diagram-tier">
+                <div class="diagram-node diagram-node--audience">
+                  <h4>Global Audience</h4>
+                  <p>Web · Mobile · OTT Players</p>
+                </div>
+                <div class="diagram-connector" aria-hidden="true">⬇</div>
+                <div class="diagram-node diagram-node--control">
+                  <h4>IORiver</h4>
+                  <p>Real-time traffic steering & config sync</p>
+                </div>
+              </div>
+              <div class="diagram-tier diagram-tier--cdns" aria-hidden="true">
+                <div class="diagram-node diagram-node--cdn">Akamai</div>
+                <div class="diagram-node diagram-node--cdn">Cloudflare</div>
+                <div class="diagram-node diagram-node--cdn">Fastly</div>
+                <div class="diagram-node diagram-node--cdn">AWS CloudFront</div>
+              </div>
+              <div class="diagram-tier">
+                <div class="diagram-connector" aria-hidden="true">⬇</div>
+                <div class="diagram-node diagram-node--data">
+                  <h4>Hydrolix</h4>
+                  <p>Unified log lake & performance analytics</p>
+                </div>
+              </div>
+              <div class="diagram-tier diagram-tier--telemetry">
+                <div class="diagram-node diagram-node--stream">
+                  <h4>Momento</h4>
+                  <p>Edge playback metrics & session state</p>
+                </div>
+                <div class="diagram-connector diagram-connector--horizontal" aria-hidden="true">⬌</div>
+                <div class="diagram-node diagram-node--analytics">
+                  <h4>Amazon Athena</h4>
+                  <p>Interactive queries & executive dashboards</p>
+                </div>
+              </div>
+            </div>
+            <a class="blueprint-card__cta" href="blueprint-multi-cdn.html">Open blueprint mini-site</a>
+          </article>
+        </div>
+      </section>
+
       <section class="analyst" aria-label="Industry analyst perspectives">
         <h2>What the Analysts Say</h2>
         <div class="analyst__carousel" id="analystCarousel"></div>
@@ -80,7 +141,7 @@
         </div>
       </section>
 
-      <section class="blogs" id="blogs">
+      <section class="blogs" id="insights">
         <h2>Latest Insights from Leading CDNs</h2>
         <div class="blogs__grid" id="blogGrid" aria-live="polite"></div>
       </section>
@@ -128,7 +189,7 @@
             <div class="input-group input-group--website" id="websiteGroup">
               <label for="website">Website</label>
               <input type="url" id="website" name="website" placeholder="https://www.example.com" />
-              <div class="input-hint" id="cwvStatus"></div>
+              <div class="input-hint cwv-status" id="cwvStatus" aria-live="polite"></div>
             </div>
           </div>
           <div class="input-group">
@@ -143,7 +204,14 @@
   </div>
 
   <script>
-    window.CRUX_API_KEY = "YOUR_CRUX_API_KEY";
+    window.CRUX_API_KEY = "AIzaSyC4RWzCpM2oZaBxms6oqmP-zNKLVVZ5D-8";
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "@vercel/analytics/next": "./vercel-analytics.js"
+      }
+    }
   </script>
   <script src="app.js" type="module"></script>
 </body>
