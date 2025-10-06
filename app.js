@@ -160,37 +160,40 @@ const renderHeroCountryShape = async ({ container, countryCode, countryName }) =
 };
 
 const measureVendorLatency = async ({ vendor, url }) => {
-  const start = performance.now();
-  const response = await fetch(url, {
-    cache: 'no-store',
-    mode: 'cors',
-    credentials: 'omit',
-    referrerPolicy: 'no-referrer',
-    headers: {
-      Accept: 'text/html',
-      'CDN-Guru-Edge-Pulse': '1',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Accept, CDN-Guru-Edge-Pulse'
-    }
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch HTML for ${vendor}`);
-  }
+  const fetchWithMode = async (mode) => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12000);
 
-  let latency;
-  if (response.body && response.body.getReader) {
-    const reader = response.body.getReader();
     try {
-      await reader.read();
-      latency = performance.now() - start;
+      const start = performance.now();
+      const response = await fetch(url, {
+        cache: 'no-store',
+        mode,
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        signal: controller.signal
+      });
+
+      const latency = performance.now() - start;
+
+      if (mode === 'cors' && !response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return { latency, responseType: response.type };
     } finally {
-      reader.cancel().catch(() => {});
+      window.clearTimeout(timeoutId);
     }
-  } else {
-    latency = performance.now() - start;
+  };
+
+  try {
+    const { latency } = await fetchWithMode('cors');
+    return { vendor, url, latency };
+  } catch (corsError) {
+    console.warn(`CORS fetch failed for ${vendor}, retrying without CORS`, corsError);
   }
 
+  const { latency } = await fetchWithMode('no-cors');
   return { vendor, url, latency };
 };
 
