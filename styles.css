@@ -228,11 +228,25 @@ body {
 .stats-marquee__inner {
   display: inline-flex;
   align-items: center;
-  gap: 2.1rem;
+  gap: 1.1rem;
   padding: 1rem 0;
   flex-shrink: 0;
   width: max-content;
-  animation: marquee 24s linear infinite;
+  animation: marquee 34s linear infinite;
+}
+
+.stats-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.stats-group__divider {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  margin-left: 0.4rem;
+  margin-right: 0.6rem;
 }
 
 .stats-chip {

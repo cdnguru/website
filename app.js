@@ -25,11 +25,72 @@ const escapeHtml = (value) =>
   });
 
 const EDGE_VENDOR_TARGETS = [
-  { vendor: 'Cloudflare', url: 'https://www.cloudflare.com/' },
-  { vendor: 'Akamai', url: 'https://www.akamai.com/' },
-  { vendor: 'Fastly', url: 'https://www.fastly.com/' },
-  { vendor: 'AWS Amazon', url: 'https://aws.amazon.com/' }
+  { id: 'cloudflare', vendor: 'Cloudflare', url: 'https://www.cloudflare.com/' },
+  { id: 'akamai', vendor: 'Akamai', url: 'https://www.akamai.com/' },
+  { id: 'fastly', vendor: 'Fastly', url: 'https://www.fastly.com/' },
+  { id: 'aws-amazon', vendor: 'AWS Amazon', url: 'https://aws.amazon.com/' }
 ];
+
+const ensureEdgePulseWorker = (() => {
+  let readinessPromise;
+  return () => {
+    if (!('serviceWorker' in navigator)) {
+      return Promise.resolve(false);
+    }
+
+    if (!readinessPromise) {
+      readinessPromise = (async () => {
+        try {
+          await navigator.serviceWorker.register('edge-pulse-sw.js');
+          const registration = await navigator.serviceWorker.ready;
+
+          if (navigator.serviceWorker.controller) {
+            return true;
+          }
+
+          const controllerReady = await new Promise((resolve) => {
+            let resolved = false;
+            const timeoutId = window.setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                navigator.serviceWorker.removeEventListener('controllerchange', handleChange);
+                resolve(false);
+              }
+            }, 5000);
+
+            function handleChange() {
+              if (!resolved) {
+                resolved = true;
+                window.clearTimeout(timeoutId);
+                navigator.serviceWorker.removeEventListener('controllerchange', handleChange);
+                resolve(true);
+              }
+            }
+
+            navigator.serviceWorker.addEventListener('controllerchange', handleChange);
+
+            if (registration.active && navigator.serviceWorker.controller) {
+              handleChange();
+            }
+          });
+
+          if (controllerReady || navigator.serviceWorker.controller) {
+            return true;
+          }
+
+          readinessPromise = null;
+          return false;
+        } catch (error) {
+          console.error('Edge Pulse worker registration failed', error);
+          readinessPromise = null;
+          return false;
+        }
+      })();
+    }
+
+    return readinessPromise;
+  };
+})();
 
 let ispIdentityPromise;
 const fetchIspIdentity = async () => {
@@ -159,7 +220,7 @@ const renderHeroCountryShape = async ({ container, countryCode, countryName }) =
   }
 };
 
-const measureVendorLatency = async ({ vendor, url }) => {
+const measureViaDirectFetch = async ({ vendor, url }) => {
   const fetchWithMode = async (mode) => {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 12000);
@@ -171,7 +232,10 @@ const measureVendorLatency = async ({ vendor, url }) => {
         mode,
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
       });
 
       const latency = performance.now() - start;
@@ -180,7 +244,7 @@ const measureVendorLatency = async ({ vendor, url }) => {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      return { latency, responseType: response.type };
+      return { latency };
     } finally {
       window.clearTimeout(timeoutId);
     }
@@ -189,12 +253,44 @@ const measureVendorLatency = async ({ vendor, url }) => {
   try {
     const { latency } = await fetchWithMode('cors');
     return { vendor, url, latency };
-  } catch (corsError) {
-    console.warn(`CORS fetch failed for ${vendor}, retrying without CORS`, corsError);
+  } catch (error) {
+    console.warn(`Direct CORS fetch failed for ${vendor}, retrying without CORS`, error);
   }
 
   const { latency } = await fetchWithMode('no-cors');
   return { vendor, url, latency };
+};
+
+const measureVendorLatency = async (target) => {
+  const workerReady = await ensureEdgePulseWorker();
+
+  if (workerReady && navigator.serviceWorker.controller) {
+    try {
+      const params = new URLSearchParams({ id: target.id, cacheBust: Date.now().toString() });
+      const response = await fetch(`/edge-pulse/measure?${params.toString()}`, {
+        cache: 'no-store',
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Edge Pulse worker responded with ${response.status}`);
+      }
+
+      const payload = await response.json();
+
+      if (!Number.isFinite(payload.latency)) {
+        throw new Error('Worker returned invalid latency');
+      }
+
+      return { vendor: target.vendor, url: target.url, latency: payload.latency };
+    } catch (error) {
+      console.warn('Edge Pulse worker measurement failed, falling back to direct fetch', error);
+    }
+  }
+
+  return measureViaDirectFetch(target);
 };
 
 const initEdgePulse = () => {
@@ -306,21 +402,29 @@ const initStatsMarquee = async () => {
     const marquee = document.getElementById('statsMarquee');
     if (!marquee) return;
 
-    const renderChips = (list) =>
+    const renderGroups = (list) =>
       list
-        .map(({ vendor, metric, value }) => {
+        .map(({ vendor, metric, value }, index) => {
           const label = `${metric}: ${value}`;
+          const isLast = index === list.length - 1;
+          const divider = isLast
+            ? ''
+            : '<span class="stats-group__divider" aria-hidden="true">•</span>';
           return `
-            <span class="stats-chip">
-              <span>${escapeHtml(vendor)}</span>
-              <span class="stats-chip__divider">·</span>
-              <span>${escapeHtml(label)}</span>
+            <span class="stats-group">
+              <span class="stats-chip">
+                <span>${escapeHtml(vendor)}</span>
+                <span class="stats-chip__divider">·</span>
+                <span>${escapeHtml(label)}</span>
+              </span>
+              ${divider}
             </span>
           `;
         })
         .join('');
 
-    marquee.innerHTML = renderChips(stats.concat(stats));
+    const combined = stats.concat(stats);
+    marquee.innerHTML = renderGroups(combined);
   } catch (error) {
     console.error('Unable to load vendor stats', error);
   }
