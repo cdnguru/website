@@ -697,7 +697,6 @@ const initContactForm = () => {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    form.reset();
     websiteGroup.classList.remove('needs-fix');
     statusNode.textContent = 'Thank you! Our team will reach out shortly.';
     statusNode.classList.remove('cwv-status--ready');
