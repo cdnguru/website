@@ -18,7 +18,6 @@
         <h1>CDN Guru</h1>
         <p class="hero__tagline">Unifying expertise across Akamai, Cloudflare, Fastly & AWS to accelerate and secure the world's biggest experiences.</p>
         <a href="#contact" class="cta">Book a Free Assessment</a>
-        <div class="hero__location" id="heroLocation" aria-live="polite">Pinpointing your edge vantage point…</div>
       </div>
     </header>
 
@@ -27,6 +26,11 @@
     </section>
 
     <main>
+      <section class="edge-pulse" id="edgePulse" aria-label="Edge performance latency">
+        <div class="edge-pulse__identity" id="edgePulseIsp" aria-live="polite"></div>
+        <div class="edge-pulse__grid" id="edgePulseGrid" aria-live="polite"></div>
+      </section>
+
       <section class="intro">
         <div class="intro__text">
           <h2>End-to-End CDN Mastery</h2>
@@ -43,19 +47,6 @@
             <p class="badge__subtitle">Airlines · E-commerce · Travel · Financial Services</p>
           </div>
         </div>
-      </section>
-
-      <section class="edge-pulse" id="edgePulse" aria-labelledby="edgePulseTitle">
-        <div class="edge-pulse__heading">
-          <h2 id="edgePulseTitle">Edge Pulse Live Lab</h2>
-          <p>Pull real HTML from leading CDN vendors, capture live time-to-first-byte, and see how your network shapes the edge.</p>
-        </div>
-        <div class="edge-pulse__actions">
-          <button type="button" class="cta cta--secondary" id="edgePulseTrigger">Run Edge Pulse</button>
-          <p class="edge-pulse__status" id="edgePulseStatus" aria-live="polite"></p>
-        </div>
-        <div class="edge-pulse__identity" id="edgePulseIsp" aria-live="polite"></div>
-        <div class="edge-pulse__grid" id="edgePulseGrid" aria-live="polite"></div>
       </section>
 
       <section class="services" id="services">
@@ -95,8 +86,7 @@
       </section>
 
       <section class="retain-calculator" id="retain">
-        <h2>Retain: Expertise on Demand</h2>
-        <p class="retain__intro">Calculate your savings when you retain CDN Guru as your strategic partner.</p>
+        <h2>Calculate your savings</h2>
         <form class="retain__form" id="retainForm">
           <div class="input-group">
             <label for="retainMode">Engagement Type</label>
@@ -117,7 +107,7 @@
 
     <footer class="contact" id="contact">
       <div class="contact__content">
-        <h2>Let's Build a Faster, Safer Edge</h2>
+        <h2>Let us help you operate more efficiently!</h2>
         <p>Every engagement begins with a no-cost assessment. Tell us about your current footprint and we will map the fastest path to value.</p>
         <form class="contact__form" id="contactForm" novalidate>
           <div class="form-row">
