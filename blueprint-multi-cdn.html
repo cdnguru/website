@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Experience Control Plane Blueprint | CDN Guru</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app app--blueprint">
+    <nav class="site-nav" aria-label="Primary">
+      <a class="site-nav__brand" href="index.html#top">CDN Guru</a>
+      <ul class="site-nav__links">
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="index.html#blueprints">Blueprints</a></li>
+        <li><a href="index.html#insights">Insights</a></li>
+        <li><a href="index.html#contact">Get in touch</a></li>
+      </ul>
+    </nav>
+
+    <main class="blueprint-main">
+      <header class="blueprint-hero" id="top">
+        <div class="blueprint-meta">
+          <span>Collection · Multi-CDN Operations</span>
+          <span>Last updated <time datetime="2025-10">Oct 2025</time></span>
+        </div>
+        <h1>Global Experience Control Plane</h1>
+        <p>
+          Build a resilient, analytics-driven delivery fabric with IORiver orchestrating traffic across your CDNs, Hydrolix absorbing
+          multi-source logs, and Momento streaming player telemetry directly into Athena for real-time decisions.
+        </p>
+        <a class="cta" href="index.html#contact">Schedule an architecture review</a>
+      </header>
+
+      <section class="blueprint-section blueprint-overview">
+        <h2>Why this blueprint</h2>
+        <div class="blueprint-columns">
+          <div>
+            <h3>Business outcomes</h3>
+            <ul class="blueprint-list">
+              <li>Maintain sub-second failover between global CDNs with unified configuration promotion.</li>
+              <li>Correlate edge performance, security events, and viewer telemetry within minutes instead of hours.</li>
+              <li>Unlock unified reporting for product and finance stakeholders without duplicating data pipelines.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Core capabilities</h3>
+            <div class="blueprint-pill-group">
+              <span class="blueprint-pill">IORiver Global Director</span>
+              <span class="blueprint-pill">IORiver Config Sync</span>
+              <span class="blueprint-pill">Akamai, Cloudflare, Fastly, AWS CloudFront</span>
+              <span class="blueprint-pill">Hydrolix Ingest & Query</span>
+              <span class="blueprint-pill">Momento Streams</span>
+              <span class="blueprint-pill">Amazon Athena</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="blueprint-section blueprint-architecture">
+        <h2>Reference architecture</h2>
+        <p>IORiver steers traffic, synchronizes policy changes, and fans out delivery to your primary CDNs while downstream analytics stay in lock-step.</p>
+        <div class="blueprint-diagram blueprint-diagram--expanded" role="img" aria-label="Global audience flows through IORiver to multiple CDNs, Hydrolix, Momento, and Athena for insights.">
+          <div class="diagram-tier">
+            <div class="diagram-node diagram-node--audience">
+              <h4>Global Audience</h4>
+              <p>Browsers · Mobile · OTT</p>
+            </div>
+            <div class="diagram-connector" aria-hidden="true">⬇</div>
+            <div class="diagram-node diagram-node--control">
+              <h4>IORiver</h4>
+              <p>Real-time routing · Config federation</p>
+            </div>
+          </div>
+          <div class="diagram-tier diagram-tier--cdns" aria-hidden="true">
+            <div class="diagram-node diagram-node--cdn">Akamai</div>
+            <div class="diagram-node diagram-node--cdn">Cloudflare</div>
+            <div class="diagram-node diagram-node--cdn">Fastly</div>
+            <div class="diagram-node diagram-node--cdn">AWS CloudFront</div>
+          </div>
+          <div class="diagram-tier">
+            <div class="diagram-connector" aria-hidden="true">⬇</div>
+            <div class="diagram-node diagram-node--data">
+              <h4>Hydrolix</h4>
+              <p>Unified log lake · Query fabric</p>
+            </div>
+          </div>
+          <div class="diagram-tier diagram-tier--telemetry">
+            <div class="diagram-node diagram-node--stream">
+              <h4>Momento</h4>
+              <p>Session metrics · Cache coherence</p>
+            </div>
+            <div class="diagram-connector diagram-connector--horizontal" aria-hidden="true">⬌</div>
+            <div class="diagram-node diagram-node--analytics">
+              <h4>Amazon Athena</h4>
+              <p>Interactive analytics · BI feeds</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="blueprint-section blueprint-operating-model">
+        <h2>Operating model</h2>
+        <ol class="blueprint-flow">
+          <li>Use IORiver config sync to push shared caching, security, and routing policies into every CDN with version control.</li>
+          <li>Stream request and security logs from each CDN into Hydrolix, applying unified schemas for accelerated investigation.</li>
+          <li>Feed Momento with player QoE metrics and viewer state, then surface enriched datasets through Athena workgroups.</li>
+        </ol>
+      </section>
+
+      <section class="blueprint-section blueprint-next-steps">
+        <h2>Next steps</h2>
+        <div class="blueprint-columns">
+          <div>
+            <h3>Implementation accelerators</h3>
+            <ul class="blueprint-list">
+              <li>Ready-to-run Terraform modules for IORiver ingress and CDN origins.</li>
+              <li>Hydrolix schema packs for CDN and WAF providers.</li>
+              <li>Momento stream processors to auto-tag viewers and enrich Athena partitions.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Engage with CDN Guru</h3>
+            <p class="blueprint-callout">Need a guided launch? Our architects can lead design sprints, platform onboarding, and 24x7 operational readiness.</p>
+            <a class="cta" href="index.html#contact">Talk with an expert</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
