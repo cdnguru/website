@@ -228,44 +228,24 @@ body {
 .stats-marquee__inner {
   display: inline-flex;
   align-items: center;
-  gap: 1.1rem;
   padding: 1rem 0;
   flex-shrink: 0;
   width: max-content;
   animation: marquee 34s linear infinite;
+  white-space: nowrap;
+  gap: 0.4rem;
 }
 
 .stats-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
+  display: inline;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .stats-group__divider {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
-  margin-left: 0.4rem;
-  margin-right: 0.6rem;
-}
-
-.stats-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.6rem 1.1rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  white-space: nowrap;
-}
-
-.stats-chip span:first-child {
-  font-weight: 600;
-}
-
-.stats-chip__divider {
   color: rgba(255, 255, 255, 0.6);
+  font-size: 1.15rem;
+  margin: 0 0.85rem;
 }
 
 @keyframes marquee {

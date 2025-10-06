@@ -402,29 +402,39 @@ const initStatsMarquee = async () => {
     const marquee = document.getElementById('statsMarquee');
     if (!marquee) return;
 
-    const renderGroups = (list) =>
-      list
-        .map(({ vendor, metric, value }, index) => {
-          const label = `${metric}: ${value}`;
-          const isLast = index === list.length - 1;
-          const divider = isLast
-            ? ''
-            : '<span class="stats-group__divider" aria-hidden="true">•</span>';
-          return `
-            <span class="stats-group">
-              <span class="stats-chip">
-                <span>${escapeHtml(vendor)}</span>
-                <span class="stats-chip__divider">·</span>
-                <span>${escapeHtml(label)}</span>
-              </span>
-              ${divider}
-            </span>
-          `;
-        })
-        .join('');
+    const groupStatsByVendor = (list) =>
+      list.reduce((groups, item) => {
+        const lastGroup = groups[groups.length - 1];
+        if (!lastGroup || lastGroup.vendor !== item.vendor) {
+          groups.push({ vendor: item.vendor, metrics: [item] });
+        } else {
+          lastGroup.metrics.push(item);
+        }
+        return groups;
+      }, []);
 
-    const combined = stats.concat(stats);
-    marquee.innerHTML = renderGroups(combined);
+    const renderGroups = (groups) =>
+      groups
+        .map((group, index) => {
+          const metrics = group.metrics
+            .map(({ metric, value }) => {
+              const valuePart = value ? ` ${escapeHtml(value)}` : '';
+              return `${escapeHtml(group.vendor)} ${escapeHtml(metric)}${valuePart}`;
+            })
+            .join(' ');
+
+          const divider =
+            index === groups.length - 1
+              ? ''
+              : ' <span class="stats-group__divider" aria-hidden="true">·</span> ';
+
+          return `<span class="stats-group">${metrics}</span>${divider}`;
+        })
+        .join(' ');
+
+    const grouped = groupStatsByVendor(stats);
+    const loopedGroups = grouped.concat(grouped);
+    marquee.innerHTML = renderGroups(loopedGroups);
   } catch (error) {
     console.error('Unable to load vendor stats', error);
   }
