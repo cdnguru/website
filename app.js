@@ -580,6 +580,8 @@ const describeMetric = (key, value) => {
   return `${label}: ${Math.round(value)}ms`;
 };
 
+const CONTACT_ENDPOINT = 'https://formsubmit.co/ajax/joakim@cdnguru.com';
+
 const initContactForm = () => {
   const form = document.getElementById('contactForm');
   const websiteInput = document.getElementById('website');
@@ -588,11 +590,42 @@ const initContactForm = () => {
 
   if (!form || !websiteInput || !websiteGroup || !statusNode) return;
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    form.reset();
     websiteGroup.classList.remove('needs-fix');
-    statusNode.textContent = 'Thank you! Our team will reach out shortly.';
+
+    const formData = new FormData(form);
+    const payload = {
+      name: formData.get('name')?.trim() || '',
+      email: formData.get('email')?.trim() || '',
+      company: formData.get('company')?.trim() || '',
+      website: formData.get('website')?.trim() || '',
+      message: formData.get('message')?.trim() || ''
+    };
+
+    statusNode.textContent = 'Sending your request…';
+
+    try {
+      const response = await fetch(CONTACT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Contact form submission failed with ${response.status}`);
+      }
+
+      await response.json().catch(() => null);
+      form.reset();
+      statusNode.textContent = 'Thank you! Our team will reach out shortly.';
+    } catch (error) {
+      console.error('Unable to submit contact form', error);
+      statusNode.textContent = 'We could not send your request. Please email joakim@cdnguru.com directly.';
+    }
   });
 
   let debounceTimer;
