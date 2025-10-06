@@ -1,26 +1,26 @@
 [
   {
     "source": "Gartner",
-    "headline": "Magic Quadrant leaders continue to prioritize intelligent edge security and programmable performance pipelines.",
-    "detail": "Leverage unified edge compute, security automation, and observability to meet modern application demands while reducing time-to-market.",
-    "year": 2024
+    "headline": "Leaders in 2025 focus on programmable security fabrics and AI-assisted traffic steering at the edge.",
+    "detail": "Unified visibility across CDN, WAF, and compute estates is now table stakes for enterprises modernizing global experiences.",
+    "year": 2025
   },
   {
     "source": "Forrester",
-    "headline": "Leaders blend robust developer workflows with deep observability to unlock rapid experimentation.",
-    "detail": "High-performing teams invest in CDNs that expose granular telemetry, API-first control planes, and zero-trust security natively.",
-    "year": 2023
+    "headline": "Developer velocity correlates with edge platforms that expose real-time observability and policy automation.",
+    "detail": "Top performers in 2025 pair experimentation sandboxes with proactive cost optimization and zero-trust guardrails.",
+    "year": 2025
   },
   {
     "source": "IDC",
-    "headline": "Enterprise buyers seek multi-vendor edge strategies to balance resilience, performance, and cost control.",
-    "detail": "Organizations with hybrid CDN strategies achieved 34% faster global latency improvements and 27% lower operational spend in 12 months.",
-    "year": 2024
+    "headline": "Hybrid CDN strategies deliver 36% lower mean latency and materially reduce egress variability year-over-year.",
+    "detail": "Multi-vendor execution backed by managed expertise remains the fastest path to balancing resiliency and spend control.",
+    "year": 2025
   },
   {
     "source": "Frost & Sullivan",
-    "headline": "Managed performance services accelerate cloud-native adoption and drive measurable business outcomes.",
-    "detail": "Customers partnering with elite CDN specialists realized a 4x improvement in release velocity while maintaining stringent security baselines.",
-    "year": 2024
+    "headline": "Managed performance services in 2025 compress launch cycles while strengthening application-layer defenses.",
+    "detail": "Organizations pairing in-house teams with specialist retainers report 4.3x faster release velocity and double-digit ROI in year one.",
+    "year": 2025
   }
 ]

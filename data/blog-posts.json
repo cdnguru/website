@@ -1,44 +1,44 @@
 [
   {
     "vendor": "Akamai",
-    "title": "Introducing EdgeWorkers Enhancements for Modern Applications",
-    "excerpt": "Akamai expands its serverless edge compute platform with new debugging tools and enhanced CI/CD integrations.",
+    "title": "Akamai Preps Adaptive Media Delivery for Holiday 2025",
+    "excerpt": "New media acceleration policies auto-tune throughput for live and on-demand OTT traffic ahead of peak season.",
     "url": "https://www.akamai.com/blog",
-    "date": "2024-08-15"
+    "date": "2025-10-01"
   },
   {
     "vendor": "Akamai",
-    "title": "Defending APIs Against Sophisticated Botnets",
-    "excerpt": "Insights from our security research team on how enterprises can stay ahead of evolving bot attacks.",
+    "title": "Edge DNS Analytics Gains AI-Powered Recommendations",
+    "excerpt": "Platform insights now surface automated resiliency fixes and threat trends within Akamai Control Center dashboards.",
     "url": "https://www.akamai.com/blog/security",
-    "date": "2024-07-09"
+    "date": "2025-09-12"
   },
   {
     "vendor": "Cloudflare",
-    "title": "Cloudflare Workers Adds Native Vector Database Support",
-    "excerpt": "Launch AI experiences with ultra-low latency thanks to integrated vector storage on the edge.",
+    "title": "Speed Week 2025: Cloudflare Accelerates HTTP/3 Everywhere",
+    "excerpt": "Server push optimizations and new congestion controls trim global TTFB across the Anycast network.",
     "url": "https://blog.cloudflare.com",
-    "date": "2024-09-02"
+    "date": "2025-10-02"
   },
   {
     "vendor": "Cloudflare",
-    "title": "New DDoS Insights: Q2 Threat Landscape",
-    "excerpt": "A deep dive into the largest network-layer attacks mitigated across the Cloudflare network.",
+    "title": "Cloudflare Radar: September 2025 DDoS and Bot Report",
+    "excerpt": "Latest telemetry highlights application-layer attacks targeting financial services in APAC and EMEA.",
     "url": "https://blog.cloudflare.com/ddos/",
-    "date": "2024-07-22"
+    "date": "2025-09-24"
   },
   {
     "vendor": "Fastly",
-    "title": "Fastly Next-Gen WAF Adds Auto-Remediation",
-    "excerpt": "Automate incident response and protect APIs faster with policy-as-code and adaptive mitigation.",
+    "title": "Fastly Adds GPU Acceleration to Compute@Edge",
+    "excerpt": "Developers can now deploy inference-ready workloads with lower cold starts and unified observability.",
     "url": "https://www.fastly.com/blog",
-    "date": "2024-08-28"
+    "date": "2025-10-03"
   },
   {
     "vendor": "Fastly",
-    "title": "Streaming at Scale: Lessons from Global Sports Events",
-    "excerpt": "How Fastly customers delivered pristine video experiences to millions of concurrent viewers.",
-    "url": "https://www.fastly.com/blog/streaming",
-    "date": "2024-06-30"
+    "title": "Fastly Security Lab Shares Bot Defense Benchmarks",
+    "excerpt": "New research details mitigation patterns for credential stuffing and scrapers across retail properties.",
+    "url": "https://www.fastly.com/blog/security",
+    "date": "2025-09-10"
   }
 ]
