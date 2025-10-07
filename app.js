@@ -594,9 +594,20 @@ const formatMetricLabel = (key) => {
   }
 };
 
+const normalizeMetricValue = (value) => {
+  if (value == null) return null;
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  const numericValue = Number.parseFloat(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+};
+
 const evaluateMetric = (key, value) => {
   const threshold = metricThresholds[key];
   if (threshold == null) return true;
+  if (value == null) return false;
   if (key === 'cumulative_layout_shift') {
     return value <= threshold;
   }
@@ -605,6 +616,9 @@ const evaluateMetric = (key, value) => {
 
 const describeMetric = (key, value) => {
   const label = formatMetricLabel(key);
+  if (value == null) {
+    return `${label}: unavailable`;
+  }
   if (key === 'largest_contentful_paint') {
     return `${label}: ${(value / 1000).toFixed(1)}s`;
   }
@@ -756,6 +770,12 @@ const runCruxLookup = async (website, group, statusNode) => {
       body: JSON.stringify(body)
     });
 
+    if (response.status === 404) {
+      statusNode.textContent = 'No Core Web Vitals available for this origin yet.';
+      group.classList.remove('needs-fix');
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(`CrUX API error: ${response.status}`);
     }
@@ -775,7 +795,7 @@ const runCruxLookup = async (website, group, statusNode) => {
     let hasFailures = false;
 
     Object.entries(metrics).forEach(([key, metric]) => {
-      const p75 = metric?.percentiles?.p75;
+      const p75 = normalizeMetricValue(metric?.percentiles?.p75);
       if (p75 == null) return;
       const passes = evaluateMetric(key, p75);
       if (!passes) hasFailures = true;
