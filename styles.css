@@ -24,6 +24,7 @@ body {
     radial-gradient(circle at bottom right, rgba(94, 234, 212, 0.1), transparent 40%),
     var(--bg);
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 .site-nav {
@@ -358,7 +359,7 @@ main {
   position: relative;
   padding: 2.75rem 2rem 2.25rem;
   border-radius: 28px;
-  max-width: 1100px;
+  max-width: 1180px;
   width: 100%;
   margin: 0 auto;
   background: linear-gradient(140deg, rgba(15, 18, 36, 0.85), rgba(11, 13, 26, 0.95));
@@ -406,6 +407,7 @@ main {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .edge-pulse__grid {
@@ -438,6 +440,7 @@ main {
   border-radius: 999px;
   border: 1px solid transparent;
   transition: transform 0.25s ease;
+  white-space: nowrap;
 }
 
 .edge-card__latency--fast {
@@ -1049,6 +1052,8 @@ main.blueprint-main {
   background: rgba(9, 12, 27, 0.65);
   transition: border-color 0.2s ease, background 0.2s ease;
   flex: 1 1 11rem;
+  position: relative;
+  cursor: pointer;
 }
 
 .checkbox-option:hover,
@@ -1058,7 +1063,27 @@ main.blueprint-main {
 }
 
 .checkbox-option input {
-  accent-color: #74d9ff;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkbox-option span {
+  pointer-events: none;
+}
+
+.checkbox-option--selected {
+  border-color: #74d9ff;
+  background: rgba(9, 12, 27, 0.9);
+  box-shadow: 0 0 0 1px rgba(116, 217, 255, 0.35);
+}
+
+.checkbox-option--focused {
+  box-shadow: 0 0 0 2px rgba(116, 217, 255, 0.45);
 }
 
 .optional {
