@@ -192,11 +192,37 @@
               <div class="input-hint cwv-status" id="cwvStatus" aria-live="polite"></div>
             </div>
           </div>
-          <div class="input-group">
-            <label for="message">How can we help?</label>
-            <textarea id="message" name="message" rows="4" placeholder="Tell us about your CDN, performance and security goals" required></textarea>
+          <div class="form-row form-row--services">
+            <fieldset class="input-group contact__services">
+              <legend>Where do you need support?</legend>
+              <div class="checkbox-group">
+                <label class="checkbox-option">
+                  <input type="checkbox" name="services" value="Optimize" />
+                  <span>Optimize</span>
+                </label>
+                <label class="checkbox-option">
+                  <input type="checkbox" name="services" value="Procure" />
+                  <span>Procure</span>
+                </label>
+                <label class="checkbox-option">
+                  <input type="checkbox" name="services" value="Retain" />
+                  <span>Retain</span>
+                </label>
+                <label class="checkbox-option">
+                  <input type="checkbox" name="services" value="Scale" />
+                  <span>Scale</span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="input-group contact__message">
+              <label for="message">Comments <span class="optional">(optional)</span></label>
+              <textarea id="message" name="message" rows="4" placeholder="We want to reduce our spend and fix performance issues"></textarea>
+            </div>
           </div>
-          <button type="submit" class="cta">Submit & Request Assessment</button>
+          <div class="form-actions">
+            <button type="submit" class="cta">Submit & Request Assessment</button>
+            <a class="cta cta--secondary" href="https://calendly.com/joakim-cdnguru" target="_blank" rel="noopener">Book a Meeting</a>
+          </div>
         </form>
       </div>
       <p class="footer-note">© <span id="year"></span> CDNguru. All rights reserved.</p>
