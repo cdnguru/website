@@ -1,14 +1,15 @@
 [
   { "vendor": "Akamai", "metric": "PoPs", "value": "4,300+" },
-  { "vendor": "Akamai", "metric": "Edge Capacity", "value": "380+ Tbps" },
+  { "vendor": "Akamai", "metric": "Edge Capacity", "value": "+1Pbs" },
   { "vendor": "Akamai", "metric": "Avg Latency", "value": "~28 ms" },
   { "vendor": "Cloudflare", "metric": "PoPs", "value": "320+" },
-  { "vendor": "Cloudflare", "metric": "Edge Capacity", "value": "220+ Tbps" },
+  { "vendor": "Cloudflare", "metric": "Edge Capacity", "value": "+300Tbps" },
   { "vendor": "Cloudflare", "metric": "Avg Latency", "value": "~20 ms" },
   { "vendor": "Fastly", "metric": "PoPs", "value": "110+" },
-  { "vendor": "Fastly", "metric": "Edge Capacity", "value": "170+ Tbps" },
+  { "vendor": "Fastly", "metric": "Edge Capacity", "value": "+450Tbps" },
   { "vendor": "Fastly", "metric": "Avg Latency", "value": "~23 ms" },
-  { "vendor": "AWS Amazon CloudFront", "metric": "Edge Locations", "value": "600+" },
+  { "vendor": "AWS Amazon CloudFront", "metric": "Edge PoPs", "value": "600+" },
   { "vendor": "AWS Amazon CloudFront", "metric": "Regional Edge Caches", "value": "13" },
-  { "vendor": "AWS Amazon CloudFront", "metric": "Global Backbone", "value": "400+ Tbps" }
+  { "vendor": "AWS Amazon CloudFront", "metric": "Edge Capacity", "value": "+600Tbps" },
+  { "vendor": "AWS Amazon CloudFront", "metric": "Avg Latency", "value": "~28ms" }
 ]
