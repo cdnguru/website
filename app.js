@@ -39,13 +39,6 @@ const EDGE_VENDOR_TARGETS = [
   { id: 'aws-amazon', vendor: 'AWS Amazon', url: 'https://aws.amazon.com/' }
 ];
 
-const VENDOR_BADGES = {
-  Akamai: { initials: 'Ak', label: 'Akamai' },
-  Cloudflare: { initials: 'Cf', label: 'Cloudflare' },
-  Fastly: { initials: 'Fs', label: 'Fastly' },
-  'AWS Amazon CloudFront': { initials: 'AWS', label: 'AWS CloudFront' }
-};
-
 const ensureEdgePulseWorker = (() => {
   let readinessPromise;
   return () => {
@@ -429,40 +422,22 @@ const initStatsMarquee = async () => {
       return Array.from(grouped.entries()).map(([vendor, metrics]) => ({ vendor, metrics }));
     };
 
-    const getInitials = (vendor) => {
-      if (!vendor) return '?';
-      const segments = String(vendor)
-        .split(/\s+/)
-        .filter(Boolean);
-      if (segments.length === 1) {
-        return segments[0].slice(0, 2).toUpperCase();
-      }
-      return segments
-        .slice(0, 3)
-        .map((part) => part[0])
-        .join('')
-        .toUpperCase();
-    };
-
     const renderGroups = (groups) =>
       groups
         .map((group) => {
-          const badge = VENDOR_BADGES[group.vendor] || {};
-          const vendorInitials = badge.initials || getInitials(group.vendor);
-          const vendorLabel = badge.label || group.vendor;
+          const vendorLabel = group.vendor;
           const metrics = group.metrics
             .map(({ metric, value }) => {
               const safeMetric = escapeHtml(metric);
               const safeValue = value ? escapeHtml(value) : '';
               const detail = safeValue ? `${safeMetric}: ${safeValue}` : safeMetric;
-              return `<span class="stats-card__metric">(${detail})</span>`;
+              return `<span class="stats-card__metric">${detail}</span>`;
             })
             .join('');
 
           return `
             <div class="stats-card">
               <div class="stats-card__header">
-                <div class="stats-card__logo" aria-hidden="true">${escapeHtml(vendorInitials)}</div>
                 <span class="stats-card__vendor-name">${escapeHtml(vendorLabel)}</span>
               </div>
               <div class="stats-card__metrics">${metrics}</div>
