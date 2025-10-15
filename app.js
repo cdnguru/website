@@ -709,6 +709,24 @@ const initContactForm = () => {
 
   statusNode.setAttribute('role', 'status');
 
+  const serviceInputs = form.querySelectorAll('.checkbox-option input[type="checkbox"]');
+  serviceInputs.forEach((input) => {
+    const option = input.closest('.checkbox-option');
+    if (!option) return;
+
+    const syncSelectionState = () => {
+      option.classList.toggle('checkbox-option--selected', input.checked);
+    };
+
+    const handleFocus = () => option.classList.add('checkbox-option--focused');
+    const handleBlur = () => option.classList.remove('checkbox-option--focused');
+
+    syncSelectionState();
+    input.addEventListener('change', syncSelectionState);
+    input.addEventListener('focus', handleFocus);
+    input.addEventListener('blur', handleBlur);
+  });
+
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     websiteGroup.classList.remove('needs-fix');
