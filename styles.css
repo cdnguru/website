@@ -277,19 +277,48 @@ body {
   width: max-content;
   animation: marquee 34s linear infinite;
   white-space: nowrap;
-  gap: 0.4rem;
+  gap: 1.5rem;
 }
 
-.stats-group {
-  display: inline;
+.stats-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(15, 18, 36, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px rgba(5, 7, 17, 0.25);
   white-space: nowrap;
-  font-weight: 500;
+  backdrop-filter: blur(18px);
 }
 
-.stats-group__divider {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1.15rem;
-  margin: 0 0.85rem;
+.stats-card__header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.stats-card__vendor-name {
+  font-size: 1rem;
+}
+
+.stats-card__metrics {
+  display: inline-flex;
+  gap: 0.6rem;
+}
+
+.stats-card__metric {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.95rem;
+  color: var(--muted);
 }
 
 @keyframes marquee {
@@ -1247,6 +1276,24 @@ main.blueprint-main {
     padding: 6.5rem 1.25rem 4.5rem;
   }
 
+  .stats-marquee__inner {
+    gap: 1.1rem;
+  }
+
+  .stats-card {
+    padding: 0.65rem 0.9rem;
+    gap: 0.75rem;
+  }
+
+  .stats-card__metrics {
+    gap: 0.45rem;
+  }
+
+  .stats-card__metric {
+    font-size: 0.88rem;
+    padding: 0.25rem 0.6rem;
+  }
+
   .retain-calculator {
     padding: 2rem;
   }
@@ -1269,6 +1316,22 @@ main.blueprint-main {
   .site-nav__links {
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  .stats-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+    border-radius: 18px;
+    white-space: normal;
+  }
+
+  .stats-card__metrics {
+    flex-wrap: wrap;
+  }
+
+  .stats-card__metric {
+    font-size: 0.85rem;
   }
 
   .diagram-tier--telemetry {

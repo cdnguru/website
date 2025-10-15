@@ -410,35 +410,41 @@ const initStatsMarquee = async () => {
     const marquee = document.getElementById('statsMarquee');
     if (!marquee) return;
 
-    const groupStatsByVendor = (list) =>
-      list.reduce((groups, item) => {
-        const lastGroup = groups[groups.length - 1];
-        if (!lastGroup || lastGroup.vendor !== item.vendor) {
-          groups.push({ vendor: item.vendor, metrics: [item] });
-        } else {
-          lastGroup.metrics.push(item);
+    const groupStatsByVendor = (list) => {
+      const grouped = new Map();
+      list.forEach((item) => {
+        const vendor = item.vendor || 'Unknown Vendor';
+        if (!grouped.has(vendor)) {
+          grouped.set(vendor, []);
         }
-        return groups;
-      }, []);
+        grouped.get(vendor).push(item);
+      });
+      return Array.from(grouped.entries()).map(([vendor, metrics]) => ({ vendor, metrics }));
+    };
 
     const renderGroups = (groups) =>
       groups
-        .map((group, index) => {
+        .map((group) => {
+          const vendorLabel = group.vendor;
           const metrics = group.metrics
             .map(({ metric, value }) => {
-              const valuePart = value ? ` ${escapeHtml(value)}` : '';
-              return `${escapeHtml(group.vendor)} ${escapeHtml(metric)}${valuePart}`;
+              const safeMetric = escapeHtml(metric);
+              const safeValue = value ? escapeHtml(value) : '';
+              const detail = safeValue ? `${safeMetric}: ${safeValue}` : safeMetric;
+              return `<span class="stats-card__metric">${detail}</span>`;
             })
-            .join(' ');
+            .join('');
 
-          const divider =
-            index === groups.length - 1
-              ? ''
-              : ' <span class="stats-group__divider" aria-hidden="true">·</span> ';
-
-          return `<span class="stats-group">${metrics}</span>${divider}`;
+          return `
+            <div class="stats-card">
+              <div class="stats-card__header">
+                <span class="stats-card__vendor-name">${escapeHtml(vendorLabel)}</span>
+              </div>
+              <div class="stats-card__metrics">${metrics}</div>
+            </div>
+          `.trim();
         })
-        .join(' ');
+        .join('');
 
     const grouped = groupStatsByVendor(stats);
     const loopedGroups = grouped.concat(grouped);
