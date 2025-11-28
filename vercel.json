@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/chaosinjector/:path*",
+      "destination": "https://chaosinjector.vercel.app/chaosinjector/:path*"
+    }
+  ]
+}
