@@ -710,12 +710,25 @@ const initContactForm = () => {
   const websiteInput = document.getElementById('website');
   const websiteGroup = document.getElementById('websiteGroup');
   const statusNode = document.getElementById('cwvStatus');
+  const formStatusNode = document.getElementById('contactStatus');
 
-  if (!form || !websiteInput || !websiteGroup || !statusNode) return;
+  if (!form || !websiteInput || !websiteGroup || !statusNode || !formStatusNode) return;
 
   statusNode.setAttribute('role', 'status');
-
+  const submitButton = form.querySelector('button[type="submit"]');
   const serviceInputs = form.querySelectorAll('.checkbox-option input[type="checkbox"]');
+  const serviceState = new Map();
+
+  const updateFormStatus = (message, variant = 'neutral') => {
+    formStatusNode.textContent = message;
+    formStatusNode.classList.remove('contact__status--success', 'contact__status--error');
+    if (variant === 'success') {
+      formStatusNode.classList.add('contact__status--success');
+    } else if (variant === 'error') {
+      formStatusNode.classList.add('contact__status--error');
+    }
+  };
+
   serviceInputs.forEach((input) => {
     const option = input.closest('.checkbox-option');
     if (!option) return;
@@ -727,18 +740,92 @@ const initContactForm = () => {
     const handleFocus = () => option.classList.add('checkbox-option--focused');
     const handleBlur = () => option.classList.remove('checkbox-option--focused');
 
+    serviceState.set(input, { option, syncSelectionState });
+
     syncSelectionState();
     input.addEventListener('change', syncSelectionState);
     input.addEventListener('focus', handleFocus);
     input.addEventListener('blur', handleBlur);
   });
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('reset', () => {
+    window.requestAnimationFrame(() => {
+      serviceState.forEach(({ option, syncSelectionState }) => {
+        option.classList.remove('checkbox-option--focused');
+        syncSelectionState();
+      });
+      statusNode.textContent = '';
+      statusNode.classList.remove('cwv-status--ready');
+      statusNode.removeAttribute('data-state');
+    });
+  });
+
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
+
+    if (typeof form.reportValidity === 'function' && !form.reportValidity()) {
+      return;
+    }
+
     websiteGroup.classList.remove('needs-fix');
-    statusNode.textContent = 'Thank you! Our team will reach out shortly.';
-    statusNode.classList.remove('cwv-status--ready');
-    statusNode.removeAttribute('data-state');
+    updateFormStatus('Sending your request…');
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute('aria-disabled', 'true');
+    }
+
+    const formData = new FormData(form);
+    const getTrimmedValue = (key) => {
+      const value = formData.get(key);
+      return typeof value === 'string' ? value.trim() : '';
+    };
+
+    const payload = {
+      name: getTrimmedValue('name'),
+      email: getTrimmedValue('email'),
+      company: getTrimmedValue('company'),
+      website: getTrimmedValue('website'),
+      services: formData
+        .getAll('services')
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter((value) => value.length > 0),
+      message: getTrimmedValue('message')
+    };
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      let result = null;
+      try {
+        result = await response.json();
+      } catch (error) {
+        result = null;
+      }
+
+      if (!response.ok || !result || !result.success) {
+        const message = (result && result.error) || `Request failed with status ${response.status}`;
+        throw new Error(message);
+      }
+
+      updateFormStatus('Thank you! Our team will reach out shortly.', 'success');
+      form.reset();
+    } catch (error) {
+      console.error('Contact form submission failed', error);
+      updateFormStatus(
+        'We were unable to send your request. Please try again in a few minutes or use the meeting link above.',
+        'error'
+      );
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-disabled');
+      }
+    }
   });
 
   let debounceTimer;
